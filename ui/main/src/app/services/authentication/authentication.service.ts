@@ -33,6 +33,8 @@ import {EventType as OAuthType, JwksValidationHandler, OAuthEvent, OAuthService}
 import {implicitAuthenticationConfigFallback} from '@ofServices/authentication/auth-implicit-flow.config';
 import {redirectToCurrentLocation} from '../../app-routing.module';
 import {Router} from '@angular/router';
+import { UserService } from '@ofServices/user.service';
+import { UserWithPerimeters } from '@ofModel/userWithPerimeters.model';
 
 export enum LocalStorageAuthContent {
     token = 'token',
@@ -61,6 +63,7 @@ export class AuthenticationService {
     private mode: string;
     private authModeHandler: AuthenticationModeHandler;
     private implicitConf = implicitAuthenticationConfigFallback;
+    private authenticatedUser: User;
 
     /**
      * @constructor
@@ -244,6 +247,7 @@ export class AuthenticationService {
         return this.httpClient.get<User>(`${this.userDataUrl}/${auth.identifier}`)
             .pipe(
                 map(u => {
+                    this.authenticatedUser = u;
                     auth.firstName = u.firstName;
                     auth.lastName = u.lastName;
                     return auth;

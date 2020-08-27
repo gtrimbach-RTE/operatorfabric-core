@@ -16,7 +16,7 @@ import { AppState } from '@ofStore/index';
 import { AuthenticationService } from '@ofServices/authentication/authentication.service';
 import { LoadConfigSuccess } from '@ofActions/config.actions';
 import { selectIdentifier } from '@ofSelectors/authentication.selectors';
-import { ConfigService} from "@ofServices/config.service";
+import { ConfigService} from '@ofServices/config.service';
 import {TranslateService} from '@ngx-translate/core';
 import { catchError } from 'rxjs/operators';
 import { I18nService } from '@ofServices/i18n.service';
@@ -41,7 +41,7 @@ export class AppComponent implements OnInit {
     constructor(private store: Store<AppState>,
         private titleService: Title
         , private authenticationService: AuthenticationService
-        ,private  configService: ConfigService
+        , private  configService: ConfigService
         , private translate: TranslateService
         , private i18nService: I18nService
         , private cardService: CardService
@@ -56,27 +56,25 @@ export class AppComponent implements OnInit {
     private loadConfiguration() {
 
           this.configService.fetchConfiguration().subscribe(config => {
-            console.log(new Date().toISOString(),`Configuration loaded (web-ui.json)`);
-            if (config.i18n.supported.locales) this.translate.addLangs(config.i18n.supported.locales);
+            console.log(new Date().toISOString(), `Configuration loaded (web-ui.json)`);
+            if (config.i18n.supported.locales) { this.translate.addLangs(config.i18n.supported.locales); }
             this.setTitle();
             this.store.dispatch(new LoadConfigSuccess({config: config}));
             this.launchAuthenticationProcess();
-        })
-            catchError((err,caught) => {
-                console.error("Impossible to load configuration file web-ui.json",err);
+        });
+            catchError((err, caught) => {
+                console.error('Impossible to load configuration file web-ui.json', err);
                 return caught;
             });
-
     }
 
-    private setTitle()
-    {
+    private setTitle() {
         const title = this.configService.getConfigValue('title');
-        if (!!title) this.titleService.setTitle(title);
+        if (!!title) { this.titleService.setTitle(title); }
     }
 
     private launchAuthenticationProcess() {
-        console.log(new Date().toISOString(),`Launch authentification process`);
+        console.log(new Date().toISOString(), `Launch authentification process`);
         this.authenticationService.initializeAuthentication();
         this.useCodeOrImplicitFlow = this.authenticationService.isAuthModeCodeOrImplicitFlow();
     }
@@ -86,11 +84,11 @@ export class AppComponent implements OnInit {
             .select(selectIdentifier)
             .subscribe(identifier => {
                 if (identifier) {
-                    console.log(new Date().toISOString(),`User ${identifier} logged`);
+                    console.log(new Date().toISOString(), `User ${identifier} logged`);
                     this.isAuthenticated = true;
                     this.userService.loadUserWithPerimetersData();
                     this.cardService.initCardSubscription();
-                    this.cardService.initSubscription.subscribe( ()=> this.loaded = true);
+                    this.cardService.initSubscription.subscribe( () => this.loaded = true);
                 }
             });
     }

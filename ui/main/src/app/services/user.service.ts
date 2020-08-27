@@ -8,59 +8,87 @@
  */
 
 
-import {Injectable} from '@angular/core';
-import {environment} from '@env/environment';
-import {Observable,Subject} from 'rxjs';
-import {Entity, User} from '@ofModel/user.model';
-import {UserWithPerimeters} from '@ofModel/userWithPerimeters.model';
-import {HttpClient} from '@angular/common/http';
-import {takeUntil} from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { environment } from '@env/environment';
+import { Observable, Subject } from 'rxjs';
+import { Entity, User } from '@ofModel/user.model';
+import { UserWithPerimeters } from '@ofModel/userWithPerimeters.model';
+import { HttpClient } from '@angular/common/http';
+import { takeUntil } from 'rxjs/operators';
+import { CrudService } from "./crud-service";
+import { GroupsService } from './groups.service';
 
 @Injectable()
-export class UserService {
+export class UserService implements CrudService {
+  readonly userUrl: string;
+  private _userWithPerimeters: UserWithPerimeters;
+  private ngUnsubscribe = new Subject<void>();
 
-    readonly userUrl: string;
-    private _userWithPerimeters: UserWithPerimeters;
-    private ngUnsubscribe = new Subject<void>();
+  /**
+   * @constructor
+   * @param httpClient - Angular build-in
+   */
+  constructor(private httpClient: HttpClient, private groupsService: GroupsService) {
+    this.userUrl = `${environment.urls.users}`;
+  }
 
-    /**
-     * @constructor
-     * @param httpClient - Angular build-in
-     */
-    constructor(private httpClient: HttpClient) {
-        this.userUrl = `${environment.urls.users}`;
-    }
+  askUserApplicationRegistered(user: string): Observable<User> {
+    return this.httpClient.get<User>(`${this.userUrl}/users/${user}`);
+  }
 
-    askUserApplicationRegistered(user: string): Observable<User> {
-        return this.httpClient.get<User>(`${this.userUrl}/users/${user}`);
-    }
+  askCreateUser(userData: User): Observable<User> {
+    return this.httpClient.put<User>(
+      `${this.userUrl}/users/${userData.login}`,
+      userData
+    );
+  }
 
-    askCreateUser(userData: User): Observable<User> {
-        return this.httpClient.put<User>(`${this.userUrl}/users/${userData.login}`, userData);
-    }
+  currentUserWithPerimeters(): Observable<UserWithPerimeters> {
+    return this.httpClient.get<UserWithPerimeters>(
+      `${this.userUrl}/CurrentUserWithPerimeters`
+    );
+  }
 
-    currentUserWithPerimeters(): Observable<UserWithPerimeters> {
-        return this.httpClient.get<UserWithPerimeters>(`${this.userUrl}/CurrentUserWithPerimeters`);
-    }
+  getAllUsers(): Observable<User[]> {
+    return this.httpClient.get<User[]>(`${this.userUrl}`);
+  }
 
-    queryAllEntities(): Observable<Entity[]> {
-        const url = `${this.userUrl}/entities`;
-        return this.httpClient.get<Entity[]>(url);
+  getAll(): Observable<User[]> {
+    return this.getAllUsers();
+  }
 
-    }
-    public loadUserWithPerimetersData(): void {
-        this.currentUserWithPerimeters()
-            .pipe(takeUntil(this.ngUnsubscribe))
-            .subscribe(
-                (userWithPerimeters) => {
-                    if (userWithPerimeters) {
-                        this._userWithPerimeters = userWithPerimeters;
-                    }
-                }, (error) => console.error(new Date().toISOString(), 'an error occurred', error)
-            );
-    }
+  updateUser(userData: User): Observable<User> {
+    return this.httpClient.post<User>(`${this.userUrl}`, userData);
+  }
 
-    public getCurrentUserWithPerimeters(): UserWithPerimeters {
-        return this._userWithPerimeters;
-    }
+  update(userData: User): Observable<User> {
+    return this.updateUser(userData);
+  }
+
+  queryAllEntities(): Observable<Entity[]> {
+    const url = `${this.userUrl}/entities`;
+    return this.httpClient.get<Entity[]>(url);
+
+  }
+  public loadUserWithPerimetersData(): void {
+    this.currentUserWithPerimeters()
+      .pipe(takeUntil(this.ngUnsubscribe))
+      .subscribe(
+        (userWithPerimeters) => {
+          if (userWithPerimeters) {
+            this._userWithPerimeters = userWithPerimeters;
+            console.log(this._userWithPerimeters);
+          }
+        }, (error) => console.error(new Date().toISOString(), 'an error occurred', error)
+      );
+
+  }
+
+  public getCurrentUserWithPerimeters(): UserWithPerimeters {
+    return this._userWithPerimeters;
+  }
+
+  public isCurrentUserAdmin(): boolean {
+    return (this.getCurrentUserWithPerimeters().userData.groups.filter(group => group === 'ADMIN').length > 0) ? true : false;
+  }
 }

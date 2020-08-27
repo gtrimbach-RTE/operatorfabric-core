@@ -24,9 +24,13 @@ import {I18nService} from '@ofServices/i18n.service';
 import {SettingsService} from '@ofServices/settings.service';
 import { UserService } from './user.service';
 import { NotifyService } from '@ofServices/notify.service';
-import {SoundNotificationService} from "@ofServices/sound-notification.service";
-import {GlobalStyleService} from "@ofServices/global-style.service";
+import {SoundNotificationService} from '@ofServices/sound-notification.service';
+import {GlobalStyleService} from '@ofServices/global-style.service';
 import { AppService } from './app.service';
+import { DataTableShareService } from 'app/modules/admin/services/data.service';
+import { GroupsService } from './groups.service';
+import { EntitiesService } from './entities.service';
+import { LoginValidatorService } from 'app/modules/admin/services/login-validator.service';
 
 @NgModule({
     imports: [
@@ -48,10 +52,14 @@ import { AppService } from './app.service';
         FilterService,
         I18nService,
         UserService,
+        GroupsService,
+        EntitiesService,
         NotifyService,
         SoundNotificationService,
         GlobalStyleService,
-        AppService
+        AppService,
+        DataTableShareService,
+        LoginValidatorService
     ]
 })
 export class ServicesModule {
